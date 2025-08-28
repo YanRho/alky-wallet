@@ -27,13 +27,12 @@ export default function AuthCard({ mode }: AuthCardProps) {
         const res = await signIn("credentials", {
           email: normalizedEmail,
           password: form.password,
-          redirect: false, // we navigate manually
+          redirect: false, 
         });
 
         if (!res) {
           setError("No response from auth server");
         } else if (res.error) {
-          // NextAuth returns "CredentialsSignin" for bad creds
           setError(res.error === "CredentialsSignin" ? "Invalid email or password" : res.error);
         } else if (res.ok) {
           router.push("/dashboard");
@@ -144,7 +143,7 @@ export default function AuthCard({ mode }: AuthCardProps) {
               </label>
               {isLogin && (
                 <a className="text-xs text-gray-700 hover:underline" href="#">
-                  Forgot?
+                  Forgot Password?
                 </a>
               )}
             </div>
