@@ -2,8 +2,8 @@ export default function Home() {
   return (
     <main className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md text-center space-y-4">
-        <h1 className="text-3xl font-semibold">Gala</h1>
-        <p className="text-gray-500">Plan together, faster.</p>
+        <h1 className="text-3xl font-semibold">Alky Wallet</h1>
+        <p className="text-gray-500">Track your Money Better</p>
         <div className="flex items-center justify-center gap-3">
           <a
             href="/login"

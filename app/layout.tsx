@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gala - Plan together, faster.",
-  description: "Your social calendar, simplified.",
+  title: "Alky Wallet",
+  description: "Your Digital Alkansya",
 };
 
 export default function RootLayout({
