@@ -1,83 +1,93 @@
 // app/api/register/route.ts
-export const runtime = "nodejs"; // ensure Node runtime for Prisma
+export const runtime = "nodejs";
 
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
-import { z, ZodError } from "zod";
-import { Prisma } from "@prisma/client";
+import { z } from "zod";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
+// Schema for incoming registration data
 const RegisterSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
-  email: (z as any).email
-    ? (z as any).email("Invalid email address")
-    : z.string().email("Invalid email address"),
+  email: z.email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
-export async function POST(req: Request) {
+// Helper: Parse and validate JSON body
+async function parseRequestBody(req: Request) {
   try {
-    let json: unknown;
-    try {
-      json = await req.json();
-    } catch {
-      return new Response(JSON.stringify({ error: "Invalid or missing JSON" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+    const json = await req.json();
+    return RegisterSchema.parse(json);
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      throw new Response(
+        JSON.stringify({ error: err.issues.map((e) => e.message).join(", ") }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
     }
+    throw new Response(
+      JSON.stringify({ error: "Invalid or missing JSON" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}
 
-    const { name, email, password } = RegisterSchema.parse(json);
-    const normalizedEmail = email.toLowerCase();
+// Helper: Create user in DB
+async function createUser(name: string, email: string, password: string) {
+  const normalizedEmail = email.toLowerCase();
+  const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
+  const passwordHash = await hash(password, saltRounds);
 
-    // Check if user already exists
-    const existing = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
-      select: { id: true },
+  // Check for existing user
+  const existing = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+    select: { id: true },
+  });
+  if (existing) {
+    throw new Response(
+      JSON.stringify({ error: "Email is already registered" }),
+      { status: 409, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  try {
+    await prisma.user.create({
+      data: { name, email: normalizedEmail, passwordHash },
     });
-    if (existing) {
-      return new Response(
+  } catch (e) {
+    if (
+      e instanceof PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      throw new Response(
         JSON.stringify({ error: "Email is already registered" }),
         { status: 409, headers: { "Content-Type": "application/json" } }
       );
     }
+    throw new Response(
+      JSON.stringify({ error: "Database error. Please try again." }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}
 
-    const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
-    const passwordHash = await hash(password, saltRounds);
-
-    try {
-      await prisma.user.create({
-        data: { name, email: normalizedEmail, passwordHash },
-      });
-    } catch (e) {
-      // Handle unique constraint violation
-      if (
-        e instanceof PrismaClientKnownRequestError &&
-        e.code === "P2002"
-      ) {
-        return new Response(
-          JSON.stringify({ error: "Email is already registered" }),
-          { status: 409, headers: { "Content-Type": "application/json" } }
-        );
-      }
-      throw e;
-    }
+// POST handler
+export async function POST(req: Request) {
+  try {
+    const { name, email, password } = await parseRequestBody(req);
+    await createUser(name, email, password);
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 201,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Content-Type-Options": "nosniff",
+      },
     });
   } catch (err) {
-    if (err instanceof ZodError) {
-      return new Response(
-        JSON.stringify({
-          error: err.issues.map((e) => e.message).join(", "),
-        }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
+    if (err instanceof Response) return err;
 
-    console.error("Registration error:", err);
+    console.error("Unexpected registration error:", err);
     return new Response(
       JSON.stringify({ error: "Server error. Please try again." }),
       { status: 500, headers: { "Content-Type": "application/json" } }

@@ -79,7 +79,7 @@ export default function AuthCard({ mode }: AuthCardProps) {
         } else if (res.error) {
           setError("Account created, but auto-login failed. Try logging in.");
         } else if (res.ok) {
-          router.push("/");
+          router.push("/dashboard");
         } else {
           setError("Account created, but could not complete login.");
         }
