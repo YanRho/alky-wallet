@@ -99,7 +99,7 @@ export default function AuthCard({ mode }: AuthCardProps) {
             {isLogin ? "Welcome back" : "Create your account"}
           </h1>
           <p className="text-gray-700 text-sm mt-1">
-            {isLogin ? "Log in to continue to Gala" : "Sign up to start planning with friends"}
+            {isLogin ? "Log in to continue" : "Sign up to start planning with friends"}
           </p>
         </div>
 
@@ -211,7 +211,6 @@ export default function AuthCard({ mode }: AuthCardProps) {
         </div>
 
         <p className="mt-4 text-center text-xs text-gray-700">
-          By continuing, you agree to Gala’s Terms and Privacy Policy.
         </p>
       </div>
     </div>
