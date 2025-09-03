@@ -4,6 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import { z } from "zod";
 
+/*
+    NextAuth configuration for authentication.
+    Uses credentials provider to authenticate users with email and password.
+    Validates input, checks user existence, and verifies password hash.
+    Configures session strategy and custom sign-in page.
+*/
+
 const CredentialsSchema = z.object({
   email: z.email(),
   password: z.string().min(8),

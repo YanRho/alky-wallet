@@ -4,6 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 
+/*
+    API route for deleting a transaction by ID.
+    It handles DELETE requests to /api/transactions/[id].
+    Validates user session, checks transaction ownership, and deletes the transaction from the database.
+    Returns appropriate HTTP status codes and messages for success and error cases.
+*/
+
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
     try {

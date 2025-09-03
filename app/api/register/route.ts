@@ -6,6 +6,14 @@ import { hash } from "bcryptjs";
 import { z } from "zod";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
+/*
+
+    API route for user registration.
+    It handles POST requests with JSON body containing name, email, and password.
+    Validates input, checks for existing user, hashes password, and creates new user in DB.
+    Returns appropriate HTTP status codes and messages for success and error cases.
+*/
+
 // Schema for incoming registration data
 const RegisterSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),

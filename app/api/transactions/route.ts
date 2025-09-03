@@ -1,10 +1,17 @@
-export const runtime = "nodejs";
-
-
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
+
+/*
+    API route for adding a new transaction.
+    It handles POST requests to /api/transactions.
+    Validates user session and input data, creates the transaction in the database.
+    Returns appropriate HTTP status codes and messages for success and error cases.
+*/
+
+
+export const runtime = "nodejs";
 
 
 const Schema = z.object({
